@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Curado Tecnológico - Vainilla del Chocó</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Cámara Climática Inteligente</h1>
+            <p>Sistema de Curado Tecnológico para Vainilla del Chocó Biogeográfico</p>
+        </header>
+
+        <div class="dashboard">
+            <!-- Panel de Control Principal -->
+            <div class="card control-panel">
+                <h2> Panel de Control</h2>
+                <button id="btnIniciarLote" class="btn-primary"> Iniciar Nuevo Lote</button>
+                <button id="btnFinalizarLote" class="btn-danger"> Finalizar Ciclo Actual</button>
+            </div>
+
+            <!-- Estado Actual -->
+            <div class="card estado-actual">
+                <h2> Estado Actual</h2>
+                <div id="estadoLote">
+                    <p class="loading">Cargando estado del sistema...</p>
+                </div>
+            </div>
+
+            <!-- Sensores y Actuadores -->
+            <div class="card sensores">
+                <h2>Sensores</h2>
+                <div id="sensoresInfo">
+                    <p class="loading">Cargando...</p>
+                </div>
+            </div>
+
+            <div class="card actuadores">
+                <h2>Actuadores</h2>
+                <div id="actuadoresInfo">
+                    <p class="loading">Cargando...</p>
+                </div>
+            </div>
+
+            <!-- Progreso de Etapa -->
+            <div class="card progreso">
+                <h2>Progreso de Curado</h2>
+                <div id="progresoInfo">
+                    <p class="loading">Cargando...</p>
+                </div>
+            </div>
+
+            <!-- Historial de Lotes -->
+            <div class="card historial">
+                <h2>Historial de Lotes</h2>
+                <div id="historialLista">
+                    <p class="loading">Cargando historial...</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Sistema de Precisión para la Cadena de Valor de Vainilla | Chocó Biogeográfico</p>
+            <p>Tecnología de curado: Escaldado (63°C) → Sudado (35°C) → Secado (45°C) → Afinado (22°C)</p>
+        </footer>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
