@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión - Vainilla del Chocó</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <div class="sidebar w-64 text-white">
+            <div class="p-6">
+                <h1 class="text-xl font-bold">🌱 Vainilla</h1>
+                <p class="text-sm opacity-75">Sistema de Gestión</p>
+                <p class="text-xs opacity-50 mt-1">Chocó Biogeográfico</p>
+            </div>
+            <nav class="mt-6">
+                <a href="#" onclick="showSection('dashboard')" class="nav-item block px-6 py-3 hover:bg-green-800 transition">
+                    📊 Dashboard
+                </a>
+                <a href="#" onclick="showSection('lotes')" class="nav-item block px-6 py-3 hover:bg-green-800 transition">
+                    📦 Lotes
+                </a>
+                <a href="#" onclick="showSection('nuevo-lote')" class="nav-item block px-6 py-3 hover:bg-green-800 transition">
+                    ➕ Nuevo Lote
+                </a>
+                <a href="#" onclick="showSection('equipos')" class="nav-item block px-6 py-3 hover:bg-green-800 transition">
+                    ⚙️ Equipos
+                </a>
+                <a href="#" onclick="showSection('reportes')" class="nav-item block px-6 py-3 hover:bg-green-800 transition">
+                    📄 Reportes
+                </a>
+                <a href="#" onclick="showSection('configuracion')" class="nav-item block px-6 py-3 hover:bg-green-800 transition">
+                    ⚙️ Configuración
+                </a>
+            </nav>
+            <div class="absolute bottom-0 w-64 p-6 border-t border-green-800">
+                <div id="userInfo" class="text-sm"></div>
+                <button onclick="logout()" class="mt-2 text-sm text-red-300 hover:text-red-200">Cerrar Sesión</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 p-8">
+            <div id="content">
+                <!-- Dashboard Section -->
+                <div id="dashboard-section" class="section">
+                    <h2 class="text-2xl font-bold mb-6">📊 Dashboard</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8" id="stats-cards">
+                        <div class="card bg-white rounded-lg p-6 shadow"><div class="loading mx-auto"></div></div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="card bg-white rounded-lg p-6 shadow">
+                            <h3 class="font-semibold mb-4">Calidad de Lotes</h3>
+                            <canvas id="calidadChart" height="200"></canvas>
+                        </div>
+                        <div class="card bg-white rounded-lg p-6 shadow">
+                            <h3 class="font-semibold mb-4">Tiempo de Proceso (horas)</h3>
+                            <canvas id="tiempoChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lotes Section -->
+                <div id="lotes-section" class="section hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold">📦 Gestión de Lotes</h2>
+                        <div class="flex gap-2">
+                            <select id="filtroEstado" class="border rounded-lg px-3 py-2" onchange="cargarLotes()">
+                                <option value="">Todos los estados</option>
+                                <option value="RECIBIDO">Recibido</option>
+                                <option value="INSPECCION_OK">Inspección OK</option>
+                                <option value="ANALISIS_OK">Análisis OK</option>
+                                <option value="CLASIFICADO">Clasificado</option>
+                                <option value="TERMINADO">Terminado</option>
+                                <option value="RECHAZADO">Rechazado</option>
+                            </select>
+                            <button onclick="cargarLotes()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">🔄 Actualizar</button>
+                        </div>
+                    </div>
+                    <div id="lotes-lista" class="grid grid-cols-1 gap-4">
+                        <div class="text-center py-8">Cargando lotes...</div>
+                    </div>
+                </div>
+
+                <!-- Nuevo Lote Section -->
+                <div id="nuevo-lote-section" class="section hidden">
+                    <h2 class="text-2xl font-bold mb-6">➕ Nuevo Lote</h2>
+                    <div class="card bg-white rounded-lg p-6 shadow max-w-2xl">
+                        <form id="formNuevoLote">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Productor *</label>
+                                    <input type="text" name="productor" required class="w-full border rounded-lg px-3 py-2">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Finca</label>
+                                    <input type="text" name="finca" class="w-full border rounded-lg px-3 py-2">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Peso (kg) *</label>
+                                    <input type="number" step="0.1" name="pesoKg" required class="w-full border rounded-lg px-3 py-2">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Número de vainas</label>
+                                    <input type="number" name="numeroVainas" class="w-full border rounded-lg px-3 py-2">
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <label class="block text-sm font-medium mb-1">Observaciones</label>
+                                <textarea name="observaciones" rows="3" class="w-full border rounded-lg px-3 py-2"></textarea>
+                            </div>
+                            <div class="mt-6 flex gap-3">
+                                <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">✅ Registrar Lote</button>
+                                <button type="button" onclick="showSection('lotes')" class="border border-gray-300 px-6 py-2 rounded-lg hover:bg-gray-100">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Equipos Section -->
+                <div id="equipos-section" class="section hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold">⚙️ Gestión de Equipos</h2>
+                        <button onclick="mostrarFormEquipo()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">➕ Nuevo Equipo</button>
+                    </div>
+                    <div id="equipos-lista" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="text-center py-8">Cargando equipos...</div>
+                    </div>
+                </div>
+
+                <!-- Reportes Section -->
+                <div id="reportes-section" class="section hidden">
+                    <h2 class="text-2xl font-bold mb-6">📄 Generar Reportes</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="card bg-white rounded-lg p-6 shadow">
+                            <h3 class="font-semibold mb-4">📦 Reporte de Lote</h3>
+                            <select id="reporteLoteId" class="w-full border rounded-lg px-3 py-2 mb-4">
+                                <option value="">Seleccionar lote...</option>
+                            </select>
+                            <button onclick="generarReporteLote()" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">📄 Generar PDF</button>
+                        </div>
+                        <div class="card bg-white rounded-lg p-6 shadow">
+                            <h3 class="font-semibold mb-4">⚙️ Reporte de Mantenimiento</h3>
+                            <select id="reporteEquipoId" class="w-full border rounded-lg px-3 py-2 mb-4">
+                                <option value="">Seleccionar equipo...</option>
+                            </select>
+                            <button onclick="generarReporteMantenimiento()" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">📄 Generar PDF</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configuración Section -->
+                <div id="configuracion-section" class="section hidden">
+                    <h2 class="text-2xl font-bold mb-6">⚙️ Configuración del Sistema</h2>
+                    <div class="card bg-white rounded-lg p-6 shadow" id="config-lista">
+                        <div class="loading mx-auto"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let token = localStorage.getItem('token');
+        let currentUser = null;
+
+        // Autenticación
+        async function login(email, password) {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            if (response.ok) {
+                const data = await response.json();
+                token = data.token;
+                currentUser = data.usuario;
+                localStorage.setItem('token', token);
+                document.getElementById('userInfo').innerHTML = `${currentUser.nombre}<br><span class="text-xs opacity-75">${currentUser.rol}</span>`;
+                showSection('dashboard');
+                cargarDashboard();
+                return true;
+            }
+            return false;
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            token = null;
+            currentUser = null;
+            mostrarLogin();
+        }
+
+        function mostrarLogin() {
+            document.getElementById('content').innerHTML = `
+                <div class="flex items-center justify-center h-screen">
+                    <div class="card bg-white rounded-lg p-8 shadow-lg w-96">
+                        <h2 class="text-2xl font-bold mb-6 text-center">🌱 Sistema de Gestión</h2>
+                        <form id="loginForm">
+                            <input type="email" id="loginEmail" placeholder="Email" class="w-full border rounded-lg px-3 py-2 mb-3">
+                            <input type="password" id="loginPassword" placeholder="Contraseña" class="w-full border rounded-lg px-3 py-2 mb-4">
+                            <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">Ingresar</button>
+                        </form>
+                        <p class="text-center text-sm text-gray-500 mt-4">admin@vainilla.com / admin123</p>
+                    </div>
+                </div>
+            `;
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                if (await login(email, password)) {
+                    location.reload();
+                } else {
+                    alert('Credenciales inválidas');
+                }
+            });
+        }
+
+        function showSection(section) {
+            document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(`${section}-section`).classList.remove('hidden');
+            
+            if (section === 'dashboard') cargarDashboard();
+            if (section === 'lotes') cargarLotes();
+            if (section === 'equipos') cargarEquipos();
+            if (section === 'configuracion') cargarConfiguracion();
+            if (section === 'reportes') {
+                cargarLotesParaSelect();
+                cargarEquiposParaSelect();
+            }
+        }
+
+        async function apiRequest(url, options = {}) {
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    ...options.headers
+                }
+            });
+            if (response.status === 401) {
+                logout();
+                throw new Error('Sesión expirada');
+            }
+            return response;
+        }
+
+        function mostrarToast(mensaje, tipo = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${tipo}`;
+            toast.textContent = mensaje;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        async function cargarDashboard() {
+            try {
+                const response = await apiRequest('/api/estadisticas');
+                const data = await response.json();
+                
+                document.getElementById('stats-cards').innerHTML = `
+                    <div class="card bg-white rounded-lg p-6 shadow"><div class="text-2xl font-bold">${data.totalLotes || 0}</div><div class="text-gray-500">Total Lotes</div></div>
+                    <div class="card bg-white rounded-lg p-6 shadow"><div class="text-2xl font-bold text-green-600">${data.calidadDistribucion?.find(c => c.calidadFinal === 'PREMIUM')?.count || 0}</div><div class="text-gray-500">Premium</div></div>
+                    <div class="card bg-white rounded-lg p-6 shadow"><div class="text-2xl font-bold text-blue-600">${data.calidadDistribucion?.find(c => c.calidadFinal === 'PRIMERA')?.count || 0}</div><div class="text-gray-500">Primera</div></div>
+                    <div class="card bg-white rounded-lg p-6 shadow"><div class="text-2xl font-bold text-red-600">${data.tasaRechazo?.toFixed(1) || 0}%</div><div class="text-gray-500">Tasa de Rechazo</div></div>
+                `;
+                
+                // Gráfico de calidad
+                const ctx = document.getElementById('calidadChart')?.getContext('2d');
+                if (ctx) {
+                    new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: (data.calidadDistribucion || []).map(c => c.calidadFinal),
+                            datasets: [{ data: (data.calidadDistribucion || []).map(c => c.count), backgroundColor: ['#4caf50', '#2196f3', '#ff9800', '#f44336'] }]
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error cargando dashboard:', error);
+            }
+        }
+
+        async function cargarLotes() {
+            const filtro = document.getElementById('filtroEstado')?.value || '';
+            const url = filtro ? `/api/lotes?estado=${filtro}` : '/api/lotes';
+            const response = await apiRequest(url);
+            const lotes = await response.json();
+            
+            const container = document.getElementById('lotes-lista');
+            if (lotes.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-gray-500">No hay lotes registrados</div>';
+                return;
+            }
+            
+            container.innerHTML = lotes.map(lote => `
+                <div class="card bg-white rounded-lg p-4 shadow">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="font-bold text-lg">${lote.codigo}</h3>
+                            <p class="text-sm text-gray-500">Productor: ${lote.productor || 'N/A'} | Peso: ${lote.pesoKg} kg</p>
+                        </div>
+                        <div>
+                            <span class="estado-badge estado-${lote.estado}">${lote.estado}</span>
+                            ${lote.calidadFinal ? `<span class="estado-badge calidad-${lote.calidadFinal} ml-2">${lote.calidadFinal}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="mt-3 flex gap-2">
+                        <button onclick="verDetalleLote(${lote.id})" class="text-blue-600 hover:text-blue-800">Ver detalles</button>
+                        ${lote.estado === 'RECIBIDO' ? `<button onclick="registrarInspeccion(${lote.id})" class="text-green-600 hover:text-green-800">Registrar Inspección</button>` : ''}
+                        ${lote.estado === 'INSPECCION_OK' ? `<button onclick="registrarAnalisis(${lote.id})" class="text-green-600 hover:text-green-800">Registrar Análisis</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function cargarEquipos() {
+            const response = await apiRequest('/api/equipos');
+            const equipos = await response.json();
+            
+            const container = document.getElementById('equipos-lista');
+            if (equipos.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-gray-500">No hay equipos registrados</div>';
+                return;
+            }
+            
+            container.innerHTML = equipos.map(equipo => `
+                <div class="card bg-white rounded-lg p-4 shadow">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="font-bold text-lg">${equipo.nombre}</h3>
+                            <p class="text-sm text-gray-500">${equipo.codigo} | ${equipo.tipo}</p>
+                        </div>
+                        <span class="estado-badge estado-${equipo.estado}">${equipo.estado}</span>
+                    </div>
+                    <div class="mt-3 grid grid-cols-2 gap-2 text-sm">
+                        <div>⏱️ Horas uso: ${equipo.horasUso || 0}</div>
+                        <div>📅 Último mantenimiento: ${equipo.ultimoMantenimiento ? new Date(equipo.ultimoMantenimiento.fecha).toLocaleDateString() : 'Nunca'}</div>
+                    </div>
+                    <div class="mt-3 flex gap-2">
+                        <button onclick="registrarUsoEquipo(${equipo.id})" class="text-blue-600 hover:text-blue-800">Registrar Uso</button>
+                        <button onclick="programarMantenimiento(${equipo.id})" class="text-orange-600 hover:text-orange-800">Programar Mantenimiento</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function cargarConfiguracion() {
+            const response = await apiRequest('/api/configuracion');
+            const configs = await response.json();
+            
+            const container = document.getElementById('config-lista');
+            container.innerHTML = configs.map(config => `
+                <div class="flex justify-between items-center py-3 border-b">
+                    <div>
+                        <div class="font-medium">${config.clave}</div>
+                        <div class="text-sm text-gray-500">${config.descripcion}</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="val_${config.clave}" value="${config.valor}" class="border rounded px-2 py-1 w-24">
+                        <button onclick="actualizarConfig('${config.clave}')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm">Guardar</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function actualizarConfig(clave) {
+            const valor = document.getElementById(`val_${clave}`).value;
+            await apiRequest(`/api/configuracion/${clave}`, {
+                method: 'PUT',
+                body: JSON.stringify({ valor })
+            });
+            mostrarToast('Configuración actualizada');
+        }
+
+        document.getElementById('formNuevoLote')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            
+            const response = await apiRequest('/api/lotes', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            
+            if (response.ok) {
+                mostrarToast('Lote registrado exitosamente');
+                showSection('lotes');
+                cargarLotes();
+            }
+        });
+
+        function verDetalleLote(id) {
+            window.open(`/api/reportes/lote/${id}`, '_blank');
+        }
+
+        async function generarReporteLote() {
+            const loteId = document.getElementById('reporteLoteId').value;
+            if (!loteId) return alert('Seleccione un lote');
+            window.open(`/api/reportes/lote/${loteId}`, '_blank');
+        }
+
+        async function generarReporteMantenimiento() {
+            const equipoId = document.getElementById('reporteEquipoId').value;
+            if (!equipoId) return alert('Seleccione un equipo');
+            window.open(`/api/reportes/mantenimiento/${equipoId}`, '_blank');
+        }
+
+        async function cargarLotesParaSelect() {
+            const response = await apiRequest('/api/lotes');
+            const lotes = await response.json();
+            const select = document.getElementById('reporteLoteId');
+            select.innerHTML = '<option value="">Seleccionar lote...</option>' + 
+                lotes.map(l => `<option value="${l.id}">${l.codigo} - ${l.productor || 'N/A'}</option>`).join('');
+        }
+
+        async function cargarEquiposParaSelect() {
+            const response = await apiRequest('/api/equipos');
+            const equipos = await response.json();
+            const select = document.getElementById('reporteEquipoId');
+            select.innerHTML = '<option value="">Seleccionar equipo...</option>' + 
+                equipos.map(e => `<option value="${e.id}">${e.nombre} (${e.codigo})</option>`).join('');
+        }
+
+        function registrarInspeccion(id) {
+            const observaciones = prompt('Observaciones de la inspección:');
+            if (observaciones !== null) {
+                const resultado = confirm('¿Aprobar inspección?') ? 'APROBADO' : 'RECHAZADO';
+                apiRequest(`/api/lotes/${id}/inspeccion`, {
+                    method: 'POST',
+                    body: JSON.stringify({ resultado, observaciones, color: 'VERDE', olor: 'NORMAL', textura: 'NORMAL' })
+                }).then(() => { cargarLotes(); mostrarToast('Inspección registrada'); });
+            }
+        }
+
+        function registrarAnalisis(id) {
+            const humedad = prompt('Humedad (%):', '70');
+            const ph = prompt('pH:', '6.0');
+            const vainillina = prompt('Vainillina (%):', '1.8');
+            apiRequest(`/api/lotes/${id}/analisis`, {
+                method: 'POST',
+                body: JSON.stringify({ humedad: parseFloat(humedad), ph: parseFloat(ph), brix: 20, vainillina: parseFloat(vainillina), temperatura: 25, observaciones: '' })
+            }).then(() => { cargarLotes(); mostrarToast('Análisis registrado'); });
+        }
+
+        if (!token) {
+            mostrarLogin();
+        } else {
+            document.getElementById('userInfo').innerHTML = 'Cargando...';
+            showSection('dashboard');
+            cargarDashboard();
+        }
+    </script>
+</body>
+</html>
